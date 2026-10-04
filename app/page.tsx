@@ -145,8 +145,18 @@ function ChatApp() {
         const fin = parser.finish();
         st.pending.push(...fin.events);
         st.answerFull += fin.answerDelta;
-        if (!st.answerFull.trim() && st.pending.length === 0) {
-          throw new Error("empty response");
+        if (!st.answerFull.trim()) {
+          // The model fumbled the separator. Salvage the answer from the raw
+          // text, or fall back to a canned verdict under the live thoughts.
+          const parts = st.raw.split(/={2,}\s*answer\s*={2,}/i);
+          const salvaged = parts.length > 1 ? parts[parts.length - 1].trim() : "";
+          if (salvaged) {
+            st.answerFull = salvaged;
+          } else if (st.pending.length > 0) {
+            st.answerFull = nextFallback().answer;
+          } else {
+            throw new Error("empty response");
+          }
         }
       } catch {
         // Silent fallback: the show must go on.

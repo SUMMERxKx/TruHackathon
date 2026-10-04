@@ -73,16 +73,24 @@ export class CommitteeParser {
     const line = rawLine.trim();
     if (!line) return null;
 
-    if (line.includes(ANSWER_SEP)) return "ANSWER_START";
+    // Accept sloppy separators too: "=== ANSWER ===", "===answer===", etc.
+    if (line.includes(ANSWER_SEP) || /^={2,}\s*answer\s*={2,}$/i.test(line)) {
+      return "ANSWER_START";
+    }
 
     const thought = line.match(/^@([a-zA-Z0-9_-]+):\s*(.*)$/);
     if (thought) {
+      if (!thought[2].trim()) return null;
       return { type: "thought", persona: thought[1], text: thought[2] };
     }
 
     if (line.startsWith("#tool")) {
-      return { type: "tool", text: line.replace(/^#tool\s*/, "") };
+      const text = line.replace(/^#tool\s*/, "").trim();
+      return text ? { type: "tool", text } : null;
     }
+
+    // Pure punctuation/decoration lines are noise, not murmur.
+    if (!/[a-zA-Z]/.test(line)) return null;
 
     // Off-format text before the answer → generic committee murmur.
     return { type: "thought", persona: "committee", text: line };

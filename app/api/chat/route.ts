@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     body: JSON.stringify({
       model: process.env.SLOPGPT_MODEL || DEFAULT_MODEL,
       stream: true,
-      max_tokens: 1200,
+      max_tokens: 2200,
       messages: [{ role: "system", content: system }, ...history],
     }),
   });
@@ -79,37 +79,47 @@ export async function POST(req: Request) {
   }
 
   // Re-emit OpenRouter's SSE stream as a plain text stream of deltas.
+  // Uses an explicit read loop in start(): a pull()-based source stalls on
+  // SSE keepalive chunks that enqueue nothing.
   const reader = upstream.body.getReader();
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
-  let sseBuffer = "";
 
   const stream = new ReadableStream<Uint8Array>({
-    async pull(controller) {
-      const { done, value } = await reader.read();
-      if (done) {
-        controller.close();
-        return;
-      }
-      sseBuffer += decoder.decode(value, { stream: true });
+    async start(controller) {
+      let sseBuffer = "";
+      try {
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          sseBuffer += decoder.decode(value, { stream: true });
 
-      let nl: number;
-      while ((nl = sseBuffer.indexOf("\n")) !== -1) {
-        const line = sseBuffer.slice(0, nl).trim();
-        sseBuffer = sseBuffer.slice(nl + 1);
-        if (!line.startsWith("data: ")) continue;
-        const data = line.slice(6);
-        if (data === "[DONE]") {
-          controller.close();
-          void reader.cancel().catch(() => {});
-          return;
+          let nl: number;
+          while ((nl = sseBuffer.indexOf("\n")) !== -1) {
+            const line = sseBuffer.slice(0, nl).trim();
+            sseBuffer = sseBuffer.slice(nl + 1);
+            if (!line.startsWith("data: ")) continue;
+            const data = line.slice(6);
+            if (data === "[DONE]") {
+              controller.close();
+              void reader.cancel().catch(() => {});
+              return;
+            }
+            try {
+              const json = JSON.parse(data);
+              const delta: string | undefined = json.choices?.[0]?.delta?.content;
+              if (delta) controller.enqueue(encoder.encode(delta));
+            } catch {
+              // Partial or non-JSON keepalive line; skip.
+            }
+          }
         }
+        controller.close();
+      } catch {
         try {
-          const json = JSON.parse(data);
-          const delta: string | undefined = json.choices?.[0]?.delta?.content;
-          if (delta) controller.enqueue(encoder.encode(delta));
+          controller.close();
         } catch {
-          // Partial or non-JSON keepalive line; skip.
+          // already closed
         }
       }
     },
