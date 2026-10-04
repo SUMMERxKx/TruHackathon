@@ -54,7 +54,7 @@ export const PERSONAS: Record<PersonaKey, Persona> = {
   kevin: {
     key: "kevin",
     name: "Kevin",
-    title: "Intern (unpaid)",
+    title: "Intern",
     emoji: "🧢",
     color: "#a3e635",
   },

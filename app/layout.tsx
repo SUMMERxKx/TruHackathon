@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "SlopGPT",
   description:
-    "The world's first AI assistant run entirely by a corporate committee. SlopGPT can make mistakes. It usually does.",
+    "The world's first AI assistant run entirely by a corporate committee.",
 };
 
 export default function RootLayout({

@@ -18,14 +18,14 @@ interface Props {
   busy: boolean;
   messagesSent: number;
   onAccepted: (text: string) => void;
-  pushToast: (text: string, kind?: "refusal" | "ok") => void;
+  onRefused: (reply: string) => void;
 }
 
 export default function PromptBox({
   busy,
   messagesSent,
   onAccepted,
-  pushToast,
+  onRefused,
 }: Props) {
   const [text, setText] = useState("");
   // Position override while dodging; null = home (docked at bottom center).
@@ -80,12 +80,12 @@ export default function PromptBox({
     const required = messagesSent === 0 ? 3 : 2;
     if (attemptsRef.current < required) {
       bonk();
-      pushToast(REFUSALS[refusalIdx.current % REFUSALS.length], "refusal");
+      onRefused(REFUSALS[refusalIdx.current % REFUSALS.length]);
       refusalIdx.current += 1;
       return;
     }
     fanfare();
-    pushToast("Ugh. Fine. Running your request.", "ok");
+    onRefused("Ugh. Fine. Running your request.");
     setText("");
     attemptsRef.current = 0;
     onAccepted(trimmed);
@@ -141,7 +141,7 @@ export default function PromptBox({
             }
           }}
           rows={1}
-          placeholder={busy ? "The committee is deliberating…" : "Ask SlopGPT anything (it will not help)"}
+          placeholder={busy ? "The committee is deliberating…" : "Ask SlopGPT anything"}
           disabled={busy}
           className="flex-1 resize-none bg-transparent outline-none text-[0.95rem] placeholder:text-[var(--text-dim)] px-2 py-1.5 max-h-40"
         />
@@ -157,7 +157,7 @@ export default function PromptBox({
         className="text-center text-[0.7rem] text-[var(--text-dim)] mt-2"
         style={{ fontFamily: "var(--font-papyrus)" }}
       >
-        SlopGPT can make mistakes. It usually does.
+        SlopGPT can make mistakes.
       </p>
     </div>
   );

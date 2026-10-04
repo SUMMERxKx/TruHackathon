@@ -1,23 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import VolumeControl from "./VolumeControl";
+import { CANNED_CHATS } from "@/lib/cannedChats";
 
-const FAKE_CHATS = [
-  "Why is 2 + 2 a legal matter",
-  "Gary's forms (14)",
-  "help",
-  "Re: Re: Re: quick question",
-  "weekend plan (6 meetings)",
-  "is water wet — ESCALATED",
-  "apology draft for Todd",
-  "Form 27-B/6 but in Comic Sans",
-  "untitled sync about syncs",
-  "help (2)",
-];
+interface Props {
+  onNewChat: () => void;
+  onOpenChat: (index: number) => void;
+  selectedChat: number | null;
+}
 
 // The sidebar is from a different decade than the rest of the app. On purpose.
-export default function Sidebar({ onNewChat }: { onNewChat: () => void }) {
+export default function Sidebar({ onNewChat, onOpenChat, selectedChat }: Props) {
   // Randomized after mount so the server and client agree during hydration.
   const [visitors, setVisitors] = useState(4870);
   useEffect(() => {
@@ -49,20 +42,22 @@ export default function Sidebar({ onNewChat }: { onNewChat: () => void }) {
         Previous disappointments
       </div>
       <nav className="flex-1 overflow-y-auto mx-2 win98-bevel-in p-1 space-y-px">
-        {FAKE_CHATS.map((c) => (
-          <div
-            key={c}
-            className="px-2 py-1 text-xs text-black hover:bg-[#000080] hover:text-white cursor-not-allowed truncate"
-            title="This chat is archived for compliance reasons."
+        {CANNED_CHATS.map((c, i) => (
+          <button
+            key={c.title}
+            onClick={() => onOpenChat(i)}
+            className={`block w-full text-left px-2 py-1 text-xs truncate cursor-pointer ${
+              selectedChat === i
+                ? "bg-[#000080] text-white"
+                : "text-black hover:bg-[#000080] hover:text-white"
+            }`}
           >
-            📁 {c}
-          </div>
+            📁 {c.title}
+          </button>
         ))}
       </nav>
 
       <div className="p-2 space-y-2">
-        <VolumeControl />
-
         <div className="win98-bevel-in px-2 py-1 text-center">
           <span className="text-[0.6rem]">You are visitor №</span>
           <div className="font-mono font-bold text-sm bg-black text-lime-400 px-1 inline-block ml-1">
@@ -83,7 +78,7 @@ export default function Sidebar({ onNewChat }: { onNewChat: () => void }) {
           <div className="w-7 h-7 win98-bevel flex items-center justify-center">🙂</div>
           <div>
             <div className="font-bold">You</div>
-            <div>Unverified · Free Tier (forever)</div>
+            <div>Unverified · Free Tier</div>
           </div>
         </div>
       </div>

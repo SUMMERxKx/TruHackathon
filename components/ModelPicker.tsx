@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 // Every option is, of course, the exact same model.
 const MODELS = [
-  { id: "slopgpt-5", label: "SlopGPT-5", note: "flagship (allegedly)" },
+  { id: "slopgpt-5", label: "SlopGPT-5", note: "flagship" },
   { id: "slopgpt-0.5-mini-turbo-max", label: "SlopGPT-0.5-mini-turbo-max", note: "legacy" },
   { id: "slopgpt-4o-mg", label: "SlopGPT-4o-mg", note: "deprecated at launch" },
   { id: "slopgpt-committee", label: "SlopGPT Committee Edition", note: "6 egos, 1 GPU" },
@@ -59,9 +59,6 @@ export default function ModelPicker({ onUpsell }: { onUpsell: () => void }) {
               ) : null}
             </button>
           ))}
-          <p className="px-3 py-1.5 text-[0.62rem] text-[var(--text-dim)] border-t border-[var(--border)] mt-1">
-            All models route to the same committee. This is disclosed nowhere.
-          </p>
         </div>
       )}
     </div>

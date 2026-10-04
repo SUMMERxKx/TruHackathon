@@ -9,9 +9,7 @@ export default function SettingsDrawer() {
   return (
     <div className="fixed right-4 top-4 z-50 w-96 max-w-[90vw] rounded-2xl border border-[var(--border)] bg-[var(--bg-panel)] shadow-2xl p-4 animate-pop">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-semibold text-sm">
-          Operator Panel <span className="text-[var(--text-dim)]">(the audience never sees this)</span>
-        </h2>
+        <h2 className="font-semibold text-sm">Operator Panel</h2>
         <button
           onClick={() => s.update({ drawerOpen: false })}
           className="text-[var(--text-dim)] hover:text-white text-lg leading-none"

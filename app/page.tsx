@@ -16,6 +16,7 @@ import SettingsDrawer from "@/components/SettingsDrawer";
 import ThinkingPanel from "@/components/ThinkingPanel";
 import Toasts, { type Toast } from "@/components/Toasts";
 import UpsellModal from "@/components/UpsellModal";
+import { CANNED_CHATS, cannedRaw } from "@/lib/cannedChats";
 import { nextFallback } from "@/lib/fallback";
 import { CommitteeParser, type ThinkEvent } from "@/lib/parser";
 import { SettingsProvider, useSettings } from "@/lib/settings";
@@ -35,6 +36,7 @@ const BOOT_POOL = [
 interface Turn {
   id: number;
   user: string;
+  kind?: "interjection"; // SlopGPT talking back in-chat; not part of API history
   hiddenUser?: boolean; // regenerate instructions don't render as bubbles
   bootShown: string[];
   events: ThinkEvent[];
@@ -89,6 +91,7 @@ function ChatApp() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [modal, setModal] = useState<"ultra" | "nag" | "rating" | null>(null);
   const [confirmingNewChat, setConfirmingNewChat] = useState(false);
+  const [selectedChat, setSelectedChat] = useState<number | null>(null);
   const nagSeen = useRef(false);
   const ratingSeen = useRef(false);
   const regenCount = useRef(0);
@@ -250,6 +253,7 @@ function ChatApp() {
       const id = Date.now();
       const history: { role: "user" | "assistant"; content: string }[] = [];
       for (const t of turns) {
+        if (t.kind === "interjection") continue;
         history.push({ role: "user", content: t.user });
         const raw = rawHistory.current.get(t.id);
         if (raw) history.push({ role: "assistant", content: raw });
@@ -288,6 +292,46 @@ function ChatApp() {
 
   const onAccepted = useCallback((text: string) => runTurn(text), [runTurn]);
 
+  // SlopGPT refuses you in the conversation itself, like a colleague would.
+  const onRefused = useCallback((reply: string) => {
+    setTurns((ts) => [
+      ...ts,
+      {
+        id: Date.now() + Math.random(),
+        user: reply,
+        kind: "interjection",
+        bootShown: [],
+        events: [],
+        answerShown: "",
+        phase: "done",
+        thinkSeconds: 0,
+        tokenCount: 0,
+      },
+    ]);
+  }, []);
+
+  const onOpenChat = useCallback((index: number) => {
+    const c = CANNED_CHATS[index];
+    streamRef.current = null;
+    viewRef.current = null;
+    rawHistory.current.clear();
+    const id = Date.now();
+    rawHistory.current.set(id, cannedRaw(c));
+    setSelectedChat(index);
+    setTurns([
+      {
+        id,
+        user: c.user,
+        bootShown: [],
+        events: c.events,
+        answerShown: c.answer,
+        phase: "done",
+        thinkSeconds: 6 + Math.floor(Math.random() * 40),
+        tokenCount: 0,
+      },
+    ]);
+  }, []);
+
   const onRegenerate = useCallback(
     (turn: Turn) => {
       regenCount.current += 1;
@@ -312,10 +356,12 @@ function ChatApp() {
     }, 7000);
   }, [turns]);
 
-  // Mandatory satisfaction survey after the first answer.
+  // Mandatory satisfaction survey after the first live answer
+  // (not after refusals or reopened chats — those earn no survey).
   useEffect(() => {
     if (ratingSeen.current) return;
-    if (turns.length >= 1 && turns[turns.length - 1].phase === "done") {
+    const last = turns[turns.length - 1];
+    if (last && last.kind !== "interjection" && last.phase === "done" && last.tokenCount > 0) {
       ratingSeen.current = true;
       window.setTimeout(() => setModal((m) => m ?? "rating"), 1200);
     }
@@ -325,6 +371,7 @@ function ChatApp() {
     streamRef.current = null;
     viewRef.current = null;
     rawHistory.current.clear();
+    setSelectedChat(null);
     setTurns([]);
   }, []);
 
@@ -343,7 +390,11 @@ function ChatApp() {
           onCancel={() => setConfirmingNewChat(false)}
         />
       )}
-      <Sidebar onNewChat={() => setConfirmingNewChat(true)} />
+      <Sidebar
+        onNewChat={() => setConfirmingNewChat(true)}
+        onOpenChat={onOpenChat}
+        selectedChat={selectedChat}
+      />
 
       <main className="flex-1 flex flex-col relative min-w-0">
         <Toasts toasts={toasts} />
@@ -387,7 +438,18 @@ function ChatApp() {
               </div>
             )}
 
-            {turns.map((t) => (
+            {turns.map((t) =>
+              t.kind === "interjection" ? (
+                <div key={t.id} className="flex items-end gap-2 animate-pop">
+                  <span className="text-2xl select-none">🫠</span>
+                  <div
+                    className="max-w-[70%] rounded-2xl rounded-bl-md px-4 py-2.5 text-[0.95rem] bg-black/40 border border-[var(--border)]"
+                    style={{ fontFamily: "var(--font-comic)" }}
+                  >
+                    {t.user}
+                  </div>
+                </div>
+              ) : (
               <div key={t.id} className="space-y-3">
                 {/* user bubble */}
                 {!t.hiddenUser ? (
@@ -441,7 +503,8 @@ function ChatApp() {
                   </div>
                 )}
               </div>
-            ))}
+              )
+            )}
             <div ref={bottomRef} />
           </div>
         </div>
@@ -449,9 +512,9 @@ function ChatApp() {
         <div className="px-4 pb-4 pt-2">
           <PromptBox
             busy={active}
-            messagesSent={turns.length}
+            messagesSent={turns.filter((t) => t.kind !== "interjection").length}
             onAccepted={onAccepted}
-            pushToast={pushToast}
+            onRefused={onRefused}
           />
         </div>
       </main>

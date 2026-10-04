@@ -108,7 +108,7 @@ export default function OrchestrationPanel({ events, phase }: Props) {
           Orchestration <span className="text-[var(--text-dim)]">(live)</span>
         </h2>
         <p className="text-[0.62rem] text-[var(--text-dim)]">
-          14 microservices · 1 actual API call
+          14 microservices · 3 healthy
         </p>
       </div>
 

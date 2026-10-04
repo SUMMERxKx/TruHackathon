@@ -65,7 +65,10 @@ projectors), mute, and a live system-prompt editor that overrides `prompts/syste
 
 **Hostile**
 - Prompt box dodges the cursor 3× (2× for later messages), blocks Tab focus, then sulks: "fine."
-- First message refused twice with rotating excuses and a bonk sound; later messages refused once.
+- First message refused twice — SlopGPT talks back **in the chat itself** ("Nah. Try again in a bit.",
+  "I'm on my break.") with a bonk sound; later messages refused once.
+- The sidebar's "previous disappointments" are real: each opens a fully canned committee transcript, and
+  the live committee will cite it if you keep chatting.
 - Cookie banner: "Accept All" or "Accept All (Recommended)". No other options.
 - Mandatory rating survey; ratings 1–6 and 8–10 are "unavailable in your region."
 - Feedback is thanked and ignored, by design and by label.
@@ -84,8 +87,6 @@ projectors), mute, and a live system-prompt editor that overrides `prompts/syste
   Times New Roman on paper, and user bubbles in Comic Sans. All slightly rotated.
 - A `<marquee>` banner, a rainbow Impact logo, a blinking NEW! badge, a visitor counter, and
   "Best viewed in Netscape 4.0" / "W3C NON-COMPLIANT ✓" badges.
-- **SFX Volume (sorted by vibes)** — a dropdown of every volume from 0–100 in shuffled order, in homage
-  to the 2017 r/ProgrammerHumor worst-volume-control challenge. It genuinely controls the sound.
 - A thinking progress bar that climbs to 99% and drops back to 12%. Labelled "(non-binding)".
 - "New chat" requires a two-step Confirmation Wizard ("Are you sure you're sure?").
 - A sparkle cursor trail, because this is a professional website.

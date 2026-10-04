@@ -19,13 +19,13 @@ export default function UpsellModal({ variant, onClose }: Props) {
     variant === "ultra"
       ? {
           title: "SlopGPT Ultra™",
-          body: "Ultra is exclusively available on the Enterprise Galaxy plan ($149,999/mo, billed hourly, annual commitment, no refunds). It is the same model with a longer name.",
-          cta: "Contact Sales (we will not respond)",
+          body: "Ultra is exclusively available on the Enterprise Galaxy plan — $149,999/mo, billed hourly, annual commitment, no refunds. Includes priority access to the committee, who will be seated in nicer chairs.",
+          cta: "Contact Sales",
         }
       : {
           title: "Upgrade to SlopGPT Pro",
-          body: "You seem to be in the middle of something. Perfect time to mention: Pro users get the same committee, but it apologizes first. Also 40% more Gary.",
-          cta: "Upgrade now (button does nothing)",
+          body: "You seem to be in the middle of something. Perfect time to mention: SlopGPT Pro's committee apologizes before being wrong. Also 40% more Gary.",
+          cta: "Upgrade now",
         };
 
   return (
@@ -57,9 +57,6 @@ export default function UpsellModal({ variant, onClose }: Props) {
         >
           {content.cta}
         </button>
-        <p className="text-[0.62rem] text-[var(--text-dim)] mt-3 text-center">
-          The × button is {closeMoved ? "in the corner you least expected" : "in the usual corner, for now"}.
-        </p>
       </div>
     </div>
   );

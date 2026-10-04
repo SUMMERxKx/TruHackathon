@@ -19,7 +19,7 @@ export default function FeedbackRow({ busy, onFeedback, onRegenerate }: Props) {
       <button
         onClick={onFeedback}
         className="rounded-lg px-2 py-1 hover:bg-[var(--bg-raised)] text-sm"
-        title="Register disapproval (same pipeline)"
+        title="Register disapproval"
       >
         👎
       </button>
@@ -27,7 +27,7 @@ export default function FeedbackRow({ busy, onFeedback, onRegenerate }: Props) {
         onClick={onRegenerate}
         disabled={busy}
         className="rounded-lg px-2.5 py-1 hover:bg-[var(--bg-raised)] text-xs disabled:opacity-40"
-        title="Same committee, different wrong answer"
+        title="Request a second opinion from the same committee"
       >
         ↻ Regenerate
       </button>
