@@ -79,6 +79,20 @@ projectors), mute, and a live system-prompt editor that overrides `prompts/syste
   an actual licensed human.
 - Regenerate produces a *different* wrong answer. The committee remembers and cites its past rulings.
 
+**Visually criminal (r/badUIbattles energy)**
+- Four design systems at war: a Windows-98 bevel sidebar, a vaporwave gradient chat, answers typeset in
+  Times New Roman on paper, and user bubbles in Comic Sans. All slightly rotated.
+- A `<marquee>` banner, a rainbow Impact logo, a blinking NEW! badge, a visitor counter, and
+  "Best viewed in Netscape 4.0" / "W3C NON-COMPLIANT ✓" badges.
+- **SFX Volume (sorted by vibes)** — a dropdown of every volume from 0–100 in shuffled order, in homage
+  to the 2017 r/ProgrammerHumor worst-volume-control challenge. It genuinely controls the sound.
+- A thinking progress bar that climbs to 99% and drops back to 12%. Labelled "(non-binding)".
+- "New chat" requires a two-step Confirmation Wizard ("Are you sure you're sure?").
+- A sparkle cursor trail, because this is a professional website.
+- The Send button cycles through "Send", "Yeet", "Submit?", "Deploy to prod", and "Beg".
+- A melting Clippy (🫠) that offers tips like "It looks like you're trying to receive help. Would you
+  like to stop?" Its dismiss button says "Unhelpful".
+
 **Disgustingly over-engineered (cosmetically)**
 - Live orchestration graph: agents light up as they "speak", decorative services (Blame Router, CoverSheet
   Validator, Excuse Cache) flicker under load.

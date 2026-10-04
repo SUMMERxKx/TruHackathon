@@ -2,8 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import ConfirmChain from "@/components/ConfirmChain";
 import CookieBanner from "@/components/CookieBanner";
+import CursorTrail from "@/components/CursorTrail";
 import FeedbackRow from "@/components/FeedbackRow";
+import Mascot from "@/components/Mascot";
 import ModelPicker from "@/components/ModelPicker";
 import OrchestrationPanel from "@/components/OrchestrationPanel";
 import PromptBox from "@/components/PromptBox";
@@ -85,6 +88,7 @@ function ChatApp() {
   speedRef.current = settings.speed;
   const bottomRef = useRef<HTMLDivElement>(null);
   const [modal, setModal] = useState<"ultra" | "nag" | "rating" | null>(null);
+  const [confirmingNewChat, setConfirmingNewChat] = useState(false);
   const nagSeen = useRef(false);
   const ratingSeen = useRef(false);
   const regenCount = useRef(0);
@@ -324,9 +328,22 @@ function ChatApp() {
     setTurns([]);
   }, []);
 
+  const lastPhase = turns.length ? turns[turns.length - 1].phase : "idle";
+
   return (
     <div className="flex h-screen">
-      <Sidebar onNewChat={onNewChat} />
+      <CursorTrail />
+      <Mascot thinking={lastPhase === "booting" || lastPhase === "thinking" || lastPhase === "answering"} />
+      {confirmingNewChat && (
+        <ConfirmChain
+          onConfirm={() => {
+            setConfirmingNewChat(false);
+            onNewChat();
+          }}
+          onCancel={() => setConfirmingNewChat(false)}
+        />
+      )}
+      <Sidebar onNewChat={() => setConfirmingNewChat(true)} />
 
       <main className="flex-1 flex flex-col relative min-w-0">
         <Toasts toasts={toasts} />
@@ -336,9 +353,15 @@ function ChatApp() {
         {modal === "nag" && <UpsellModal variant="nag" onClose={() => setModal(null)} />}
         {modal === "rating" && <RatingModal onClose={() => setModal(null)} />}
 
-        <header className="flex items-center justify-between px-4 py-2 border-b border-[var(--border)]">
+        <div className="marquee bg-black/40 border-b border-[var(--accent)] text-[0.68rem] py-0.5">
+          <span className="marquee-inner" style={{ fontFamily: "var(--font-comic)" }}>
+            🚨 WELCOME TO SLOPGPT™ 🚨 now with 40% more Gary ✨ SpesCoins (₷) accepted 💸 your call is
+            important to a committee 📠 fax support coming 2027 🏆 voted &ldquo;an AI&rdquo; by TIME magazine 🚨
+          </span>
+        </div>
+        <header className="flex items-center justify-between px-4 py-2 border-b border-[var(--border)] bg-black/20">
           <ModelPicker onUpsell={() => setModal("ultra")} />
-          <span className="text-[0.65rem] text-[var(--text-dim)]">
+          <span className="text-[0.65rem] text-[var(--text-dim)] blink-hard">
             47 sub-agents standing by · 0 useful
           </span>
         </header>
@@ -346,14 +369,19 @@ function ChatApp() {
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-[46rem] mx-auto px-4 py-8 space-y-8">
             {turns.length === 0 && (
-              <div className="text-center pt-[18vh]">
-                <div className="text-6xl mb-4">🫠</div>
-                <h1 className="text-3xl font-bold tracking-tight">SlopGPT</h1>
-                <p className="text-[var(--text-dim)] mt-2">
+              <div className="text-center pt-[14vh]">
+                <div className="text-6xl mb-4 animate-wobble inline-block">🫠</div>
+                <h1
+                  className="rainbow-text text-5xl font-black tracking-tight"
+                  style={{ fontFamily: "var(--font-impact)", textShadow: "3px 3px 0 rgba(0,0,0,0.4)" }}
+                >
+                  SlopGPT™
+                </h1>
+                <p className="text-[var(--text-dim)] mt-3" style={{ fontFamily: "var(--font-papyrus)" }}>
                   The world&apos;s first AI assistant run entirely by middle management.
                 </p>
-                <p className="text-[var(--text-dim)] text-sm mt-6">
-                  Try: <span className="text-[var(--text)]">&ldquo;what is 2 + 3?&rdquo;</span>{" "}
+                <p className="text-sm mt-6 -rotate-1" style={{ fontFamily: "var(--font-comic)" }}>
+                  Try: <span className="text-[var(--accent2)]">&ldquo;what is 2 + 3?&rdquo;</span>{" "}
                   — if you can catch the text box.
                 </p>
               </div>
@@ -364,7 +392,15 @@ function ChatApp() {
                 {/* user bubble */}
                 {!t.hiddenUser ? (
                   <div className="flex justify-end">
-                    <div className="max-w-[80%] rounded-2xl rounded-br-md bg-[var(--accent)]/20 border border-[var(--accent)]/40 px-4 py-2.5 text-[0.95rem]">
+                    <div
+                      className="max-w-[80%] rounded-2xl rounded-br-md px-4 py-2.5 text-[0.95rem]"
+                      style={{
+                        fontFamily: "var(--font-comic)",
+                        background: "linear-gradient(135deg, rgba(255,47,185,0.35), rgba(176,47,255,0.3))",
+                        border: "2px dashed var(--accent2)",
+                        transform: `rotate(${((t.id % 5) - 2) * 0.7}deg)`,
+                      }}
+                    >
                       {t.user}
                     </div>
                   </div>
@@ -386,7 +422,10 @@ function ChatApp() {
 
                 {/* answer */}
                 {t.answerShown && (
-                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-panel)] px-5 py-4">
+                  <div
+                    className="paper-card rounded-sm px-5 py-4"
+                    style={{ transform: `rotate(${((t.id % 7) - 3) * 0.45}deg)` }}
+                  >
                     <div className="markdown text-[0.95rem]">
                       <ReactMarkdown>{t.answerShown}</ReactMarkdown>
                     </div>

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { bonk, fanfare } from "@/lib/sounds";
 
+const SEND_LABELS = ["Send", "Yeet", "Submit?", "Deploy to prod", "Beg"];
+
 const REFUSALS = [
   "Nah. Try again in a bit.",
   "I'm on my break.",
@@ -115,7 +117,13 @@ export default function PromptBox({
           fine.
         </div>
       )}
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-raised)] shadow-xl p-3 flex items-end gap-2">
+      <div
+        className="rounded-2xl p-3 flex items-end gap-2 shadow-xl"
+        style={{
+          background: "linear-gradient(135deg, rgba(255,47,185,0.22), rgba(57,255,20,0.14), rgba(47,212,255,0.2))",
+          border: "3px ridge #ff2fb9",
+        }}
+      >
         <textarea
           ref={textareaRef}
           value={text}
@@ -140,12 +148,15 @@ export default function PromptBox({
         <button
           onClick={trySubmit}
           disabled={busy || !text.trim()}
-          className="rounded-xl bg-[var(--accent)] hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold px-4 py-2 transition-colors"
+          className="win98-btn disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold px-4 py-2"
         >
-          {busy ? "…" : "Send"}
+          {busy ? "…" : SEND_LABELS[messagesSent % SEND_LABELS.length]}
         </button>
       </div>
-      <p className="text-center text-[0.7rem] text-[var(--text-dim)] mt-2">
+      <p
+        className="text-center text-[0.7rem] text-[var(--text-dim)] mt-2"
+        style={{ fontFamily: "var(--font-papyrus)" }}
+      >
         SlopGPT can make mistakes. It usually does.
       </p>
     </div>

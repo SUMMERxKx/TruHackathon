@@ -61,6 +61,35 @@ function fmtBilled(seconds: number): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
+// A progress bar legally distinct from progress.
+function LyingProgress({ speed }: { speed: number }) {
+  const [pct, setPct] = useState(3);
+  useEffect(() => {
+    const iv = window.setInterval(() => {
+      setPct((p) => {
+        if (p >= 99) return 12; // so close
+        const step = (p > 80 ? 7 : 2.3) * speed;
+        return Math.min(99, p + step * (0.4 + Math.random()));
+      });
+    }, 450);
+    return () => window.clearInterval(iv);
+  }, [speed]);
+
+  return (
+    <div className="flex items-center gap-2 pt-2">
+      <div className="flex-1 h-3 win98-bevel-in overflow-hidden">
+        <div
+          className="h-full progress-liar transition-[width] duration-300"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className="font-mono text-[0.62rem] text-[var(--text-dim)] w-28 shrink-0">
+        {Math.floor(pct)}% (non-binding)
+      </span>
+    </div>
+  );
+}
+
 interface Props {
   bootLines: string[];
   events: ThinkEvent[];
@@ -126,6 +155,7 @@ export default function ThinkingPanel({
 
       {!collapsed && (
         <div className="px-4 pb-3 border-t border-[var(--border)]">
+          {!finished && <LyingProgress speed={speed} />}
           {bootLines.length > 0 && (
             <div className="font-mono text-[0.72rem] text-[var(--text-dim)] pt-2 space-y-0.5">
               {bootLines.map((l, i) => (
