@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import CookieBanner from "@/components/CookieBanner";
 import FeedbackRow from "@/components/FeedbackRow";
 import ModelPicker from "@/components/ModelPicker";
+import OrchestrationPanel from "@/components/OrchestrationPanel";
 import PromptBox from "@/components/PromptBox";
 import RatingModal from "@/components/RatingModal";
 import Sidebar from "@/components/Sidebar";
@@ -415,6 +416,11 @@ function ChatApp() {
           />
         </div>
       </main>
+
+      <OrchestrationPanel
+        events={turns.length ? turns[turns.length - 1].events : []}
+        phase={turns.length ? turns[turns.length - 1].phase : "idle"}
+      />
     </div>
   );
 }
