@@ -2,11 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import CookieBanner from "@/components/CookieBanner";
+import FeedbackRow from "@/components/FeedbackRow";
+import ModelPicker from "@/components/ModelPicker";
 import PromptBox from "@/components/PromptBox";
+import RatingModal from "@/components/RatingModal";
 import Sidebar from "@/components/Sidebar";
 import SettingsDrawer from "@/components/SettingsDrawer";
 import ThinkingPanel from "@/components/ThinkingPanel";
 import Toasts, { type Toast } from "@/components/Toasts";
+import UpsellModal from "@/components/UpsellModal";
 import { nextFallback } from "@/lib/fallback";
 import { CommitteeParser, type ThinkEvent } from "@/lib/parser";
 import { SettingsProvider, useSettings } from "@/lib/settings";
@@ -26,6 +31,7 @@ const BOOT_POOL = [
 interface Turn {
   id: number;
   user: string;
+  hiddenUser?: boolean; // regenerate instructions don't render as bubbles
   bootShown: string[];
   events: ThinkEvent[];
   answerShown: string;
@@ -77,6 +83,10 @@ function ChatApp() {
   const speedRef = useRef(settings.speed);
   speedRef.current = settings.speed;
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [modal, setModal] = useState<"ultra" | "nag" | "rating" | null>(null);
+  const nagSeen = useRef(false);
+  const ratingSeen = useRef(false);
+  const regenCount = useRef(0);
 
   const active = turns.length > 0 && turns[turns.length - 1].phase !== "done";
 
@@ -230,8 +240,8 @@ function ChatApp() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [turns]);
 
-  const onAccepted = useCallback(
-    (text: string) => {
+  const runTurn = useCallback(
+    (text: string, hiddenUser = false) => {
       const id = Date.now();
       const history: { role: "user" | "assistant"; content: string }[] = [];
       for (const t of turns) {
@@ -256,6 +266,7 @@ function ChatApp() {
       const turn: Turn = {
         id,
         user: text,
+        hiddenUser,
         bootShown: [],
         events: [],
         answerShown: "",
@@ -269,6 +280,41 @@ function ChatApp() {
     },
     [turns, runStream]
   );
+
+  const onAccepted = useCallback((text: string) => runTurn(text), [runTurn]);
+
+  const onRegenerate = useCallback(
+    (turn: Turn) => {
+      regenCount.current += 1;
+      runTurn(
+        `[The user clicked Regenerate (attempt ${regenCount.current}) on the question: "${turn.user}". ` +
+          `Produce a DIFFERENT confidently wrong answer than before. Kevin is visibly more tired than last time.]`,
+        true
+      );
+    },
+    [runTurn]
+  );
+
+  // Pro nag: appears once, at the worst possible moment (mid-deliberation).
+  useEffect(() => {
+    if (nagSeen.current) return;
+    const thinking = turns.some((t) => t.phase === "thinking");
+    if (!thinking) return;
+    nagSeen.current = true;
+    // No cleanup: the timer must survive re-renders so the nag lands mid-deliberation.
+    window.setTimeout(() => {
+      setModal((m) => m ?? "nag");
+    }, 7000);
+  }, [turns]);
+
+  // Mandatory satisfaction survey after the first answer.
+  useEffect(() => {
+    if (ratingSeen.current) return;
+    if (turns.length >= 1 && turns[turns.length - 1].phase === "done") {
+      ratingSeen.current = true;
+      window.setTimeout(() => setModal((m) => m ?? "rating"), 1200);
+    }
+  }, [turns]);
 
   const onNewChat = useCallback(() => {
     streamRef.current = null;
@@ -284,6 +330,17 @@ function ChatApp() {
       <main className="flex-1 flex flex-col relative min-w-0">
         <Toasts toasts={toasts} />
         <SettingsDrawer />
+        <CookieBanner />
+        {modal === "ultra" && <UpsellModal variant="ultra" onClose={() => setModal(null)} />}
+        {modal === "nag" && <UpsellModal variant="nag" onClose={() => setModal(null)} />}
+        {modal === "rating" && <RatingModal onClose={() => setModal(null)} />}
+
+        <header className="flex items-center justify-between px-4 py-2 border-b border-[var(--border)]">
+          <ModelPicker onUpsell={() => setModal("ultra")} />
+          <span className="text-[0.65rem] text-[var(--text-dim)]">
+            47 sub-agents standing by · 0 useful
+          </span>
+        </header>
 
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-[46rem] mx-auto px-4 py-8 space-y-8">
@@ -304,11 +361,17 @@ function ChatApp() {
             {turns.map((t) => (
               <div key={t.id} className="space-y-3">
                 {/* user bubble */}
-                <div className="flex justify-end">
-                  <div className="max-w-[80%] rounded-2xl rounded-br-md bg-[var(--accent)]/20 border border-[var(--accent)]/40 px-4 py-2.5 text-[0.95rem]">
-                    {t.user}
+                {!t.hiddenUser ? (
+                  <div className="flex justify-end">
+                    <div className="max-w-[80%] rounded-2xl rounded-br-md bg-[var(--accent)]/20 border border-[var(--accent)]/40 px-4 py-2.5 text-[0.95rem]">
+                      {t.user}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center text-[0.68rem] text-[var(--text-dim)] italic">
+                    ↻ regenerating (the committee is annoyed)
+                  </div>
+                )}
 
                 {/* committee thinking */}
                 <ThinkingPanel
@@ -326,6 +389,15 @@ function ChatApp() {
                     <div className="markdown text-[0.95rem]">
                       <ReactMarkdown>{t.answerShown}</ReactMarkdown>
                     </div>
+                    {t.phase === "done" && (
+                      <FeedbackRow
+                        busy={active}
+                        onFeedback={() =>
+                          pushToast("Thanks! Your feedback has been ignored.", "ok")
+                        }
+                        onRegenerate={() => onRegenerate(t)}
+                      />
+                    )}
                   </div>
                 )}
               </div>
