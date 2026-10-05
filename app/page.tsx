@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import ConfirmChain from "@/components/ConfirmChain";
 import CookieBanner from "@/components/CookieBanner";
 import CursorTrail from "@/components/CursorTrail";
@@ -499,7 +500,7 @@ function ChatApp() {
                     style={{ transform: `rotate(${((t.id % 7) - 3) * 0.45}deg)` }}
                   >
                     <div className="markdown text-[0.95rem]">
-                      <ReactMarkdown>{t.answerShown}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{t.answerShown}</ReactMarkdown>
                     </div>
                     {t.phase === "done" && (
                       <FeedbackRow

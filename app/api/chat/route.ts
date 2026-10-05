@@ -4,7 +4,7 @@ import path from "path";
 export const runtime = "nodejs";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const DEFAULT_MODEL = "anthropic/claude-sonnet-5.5";
+const DEFAULT_MODEL = "z-ai/glm-5.3-flash";
 
 interface ChatMessage {
   role: "user" | "assistant" | "system";

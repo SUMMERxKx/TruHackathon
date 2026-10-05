@@ -33,7 +33,7 @@ Open http://localhost:3000.
 | Var | What |
 |---|---|
 | `OPENROUTER_API_KEY` | Your key from https://openrouter.ai/keys. Server-side only. |
-| `SLOPGPT_MODEL` | Any OpenRouter model slug. Default: `anthropic/claude-sonnet-5.5`. |
+| `SLOPGPT_MODEL` | Any OpenRouter model slug. Default: `z-ai/glm-5.3-flash`. |
 
 No key (or a dead network)? The show still runs — every failure silently swaps in a canned committee
 session, so the demo can never dead-end.
